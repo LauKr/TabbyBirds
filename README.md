@@ -20,3 +20,9 @@ and the standard modules
 - configparser
 - datetime
 - sqlite3
+
+## Running the game
+To run the game simply use the tabby_birds.py script:
+`
+python tabby_birds.py
+`
