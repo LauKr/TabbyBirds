@@ -3,11 +3,25 @@ import neat
 import time
 import os
 import random
+import configparser
+import InteractiveFlappies as interact  # InteractiveFlappies.py
+
+
 pygame.font.init()
+configParser = configparser.RawConfigParser()
+configFilePath = os.path.join(os.path.dirname(__file__), 'game.cfg')
+configParser.read(configFilePath)
 
 
-WIN_WIDTH = 500
-WIN_HEIGHT = 800
+# Game-Speed and difficulty in a sense
+VELOCITY = configParser.getint("difficulty", "VELOCITY")
+PIPE_DISTANCE = configParser.getint("difficulty", "PIPE_DISTANCE")
+PIPE_GAP = configParser.getint("difficulty", "PIPE_GAP")
+
+
+WIN_WIDTH = configParser.getint("window", "WIN_WIDTH")
+WIN_HEIGHT = configParser.getint("window", "WIN_HEIGHT")
+
 
 BIRD_IMGS = [pygame.transform.scale2x(pygame.image.load(os.path.join("imgs", "bird1.png"))),
              pygame.transform.scale2x(pygame.image.load(os.path.join("imgs", "bird2.png"))),
@@ -16,12 +30,7 @@ PIPE_IMG = pygame.transform.scale2x(pygame.image.load(os.path.join("imgs", "pipe
 BASE_IMG = pygame.transform.scale2x(pygame.image.load(os.path.join("imgs", "base.png")))
 BG_IMG = pygame.transform.scale2x(pygame.image.load(os.path.join("imgs", "bg.png")))
 
-STAT_FONT = pygame.font.SysFont("comicsans", 50)
-
-
-# Game-Speed and difficulty in a sense
-VELOCITY = 5
-PIPE_DISTANCE = 600
+STAT_FONT = pygame.font.SysFont(configParser.get("font", "FONT"), 50)
 
 
 class Bird:
@@ -74,7 +83,7 @@ class Bird:
             self.img = self.IMGS[0]
             self.img_count = 0
 
-        if self.tilt <= -80:  # If the bird is diving down don't flap
+        if self.tilt <= -80:  # If the bird is diving don't flap
             self.img = self.IMGS[1]
             self.img_count = self.ANIMATION_TIME * 2
 
@@ -89,10 +98,10 @@ class Bird:
 class Pipe:
     VEL = VELOCITY
 
-    def __init__(self, x):
+    def __init__(self, x, gap):
         self.x = x
         self.height = 0
-        self.gap = 100
+        self.gap = gap
 
         self.top = 0
         self.bottom = 0
@@ -165,14 +174,30 @@ def draw_window(win, bird, pipes, base, score):
     pygame.display.update()
 
 
-def main():
+def main(interactive: bool = True) -> None:
+    global PIPE_GAP
     bird = Bird(230, 350)
     base = Base(730)
-    pipes = [Pipe(700)]
-
+    pipes = [Pipe(700, PIPE_GAP)]
+    pygame.init()
     win = pygame.display.set_mode((WIN_WIDTH, WIN_HEIGHT))
     clock = pygame.time.Clock()
-
+    if interactive:
+        interact.begin_game(win)
+        try:
+            with open("game_variables.transfer", 'r') as f:
+                lines = []
+                for line in f:
+                    lines.append(line)
+            difficulty = lines[0][11]
+            name = lines[1][5:-1]
+            os.remove(os.path.join(os.path.dirname(__file__), "game_variables.transfer"))
+            if difficulty == "1":
+                PIPE_GAP = configParser.getint("difficulty", "PIPE_GAP_EASY")
+            elif difficulty == "2":
+                PIPE_GAP = configParser.getint("difficulty", "PIPE_GAP_HARD")
+        except FileNotFoundError:
+            pass
     run = True
     score = 0
     while run:
@@ -180,13 +205,16 @@ def main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
-        #bird.move()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    bird.jump()
+        bird.move()
         base.move()
         rem = []  # List with pipe objects to be removed
         add_pipe = False  # Has a pipe been passed and a new one has to be generated?
         for pipe in pipes:
             if pipe.collide(bird):
-                pass
+                run = False
             if pipe.x + pipe.PIPE_TOP.get_width() < 0:  # If pipe completely off screen
                 rem.append(pipe)
             if not pipe.passed and pipe.x < bird.x:  # If bird passed the pipe...
@@ -195,14 +223,20 @@ def main():
             pipe.move()
         if add_pipe:
             score += 1
-            pipes.append(Pipe(x=PIPE_DISTANCE))
+            pipes.append(Pipe(x=PIPE_DISTANCE, gap=PIPE_GAP))
         for r in rem:
             pipes.remove(r)
         if bird.y + bird.img.get_height() > 730:
-            print("END")
+            run = False
         draw_window(win, bird, pipes, base, score)
-    pygame.quit()
-    quit()
+    if interactive:
+        try:
+            interact.end_game(win, score, name)
+        except Exception:
+            interact.end_game(win, score, "Error")
+    else:
+        pygame.quit()
+        quit()
 
 
 if __name__ == '__main__':
