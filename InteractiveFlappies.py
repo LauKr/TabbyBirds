@@ -74,7 +74,6 @@ def begin_game(surface):
 
     def get_name(my_name):
         global name
-        print("Player name is ", my_name)
         name = my_name
 
     def start_the_game():
