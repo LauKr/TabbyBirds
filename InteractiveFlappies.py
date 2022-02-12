@@ -42,12 +42,12 @@ def end_game(win, score: int, user_name: str):
         for i, l in enumerate(lines):
             win.blit(STAT_FONT.render(l, 1, (255, 255, 255)), (x, y + fsize * i))
 
-    got_highscore = write_leaderboard(score=score, write_name=user_name)
+    got_highscore = write_leaderboard(score=score, write_name=user_name, difficulty_int=difficulty)
     win.blit(BG_IMG, (0, 0))
     if got_highscore:
-        text = f"Game ended\nYou scored: {score}\nThat's good!\nPress Space"
+        text = f"Game ended\nYou scored: {score}\nThat's good!\nPress Escape"
     else:
-        text = f"Game ended\nYou scored: {score}\nPress Space"
+        text = f"Game ended\nYou scored: {score}\nPress Escape"
     render_multi_line(text, 100, 200, 50)
     pygame.display.update()
     clock = pygame.time.Clock()
@@ -58,7 +58,7 @@ def end_game(win, score: int, user_name: str):
             if event.type == pygame.QUIT:
                 ending = False
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_SPACE:
+                if event.key == pygame.K_ESCAPE:
                     ending = False
     pygame.quit()
     quit()
@@ -88,11 +88,23 @@ def begin_game(surface):
         surface.blit(BG_IMG, (0, 0))
 
     def show_highscores():
-        highscores = show_leaderboard()
-        leaders = pygame_menu.Menu('Leaderboard', 400, 700, theme=pygame_menu.themes.THEME_DEFAULT,
+        global difficulty
+        if difficulty == 0:
+            mode = "normal"
+        elif difficulty == 1:
+            mode = "easy"
+        elif difficulty == 2:
+            mode = "hard"
+        else:
+            raise ValueError
+
+        highscores = show_leaderboard(difficulty_int=difficulty)
+        leaders = pygame_menu.Menu('Leaderboard', 450, 700, theme=pygame_menu.themes.THEME_DEFAULT,
                                    onclose=pygame_menu.events.BACK)
+        leaders.add.label("Mode: "+mode)
         leader_table = leaders.add.table()
         leader_table.default_cell_padding = 5
+        leader_table.shadow()
         for scores in highscores:
             leader_table.add_row(scores)
         leaders.add.button("Back", pygame_menu.events.BACK)
@@ -102,31 +114,53 @@ def begin_game(surface):
                             theme=pygame_menu.themes.THEME_BLUE, onclose=pygame_menu.events.BACK)
 
     menu.add.text_input('Name :', default=name, onchange=get_name)
-    menu.add.selector('Difficulty :', [('Normal', 0), ('Hard', 2), ('Easy', 1)], onchange=set_difficulty, style='fancy')
+    menu.add.selector('Difficulty :', [('Easy', 1), ('Normal', 0), ('Hard', 2)], onchange=set_difficulty, style='fancy')
     menu.add.button('Play', start_the_game)
     menu.add.button('Highscores', show_highscores)
     menu.add.button('Quit', pygame_menu.events.EXIT)
     menu.mainloop(surface, bgfun=draw_bg)
 
 
-def write_leaderboard(score: int, write_name: str):
-    db_path = os.path.join(os.path.dirname(__file__), 'leaderboard.db')
-    if not os.path.isfile(db_path):  # If database is missing, create new
-        conn = sqlite3.connect(db_path)
-        cursor = conn.cursor()
-        cursor.execute("""CREATE TABLE scores (
-            score INTEGER, 
-            name TEXT, 
-            date TEXT
-            )""")
-        conn.commit()
-        cursor.close()
-        conn.close()
-
-    today = date.today().strftime('%d %B %Y')
+def create_db(db_path):
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM scores ORDER BY score ASC")
+    cursor.execute("""CREATE TABLE scores_easy (
+        score INTEGER, 
+        name TEXT, 
+        date TEXT
+        )""")
+    cursor.execute("""CREATE TABLE scores_normal (
+        score INTEGER, 
+        name TEXT, 
+        date TEXT
+        )""")
+    cursor.execute("""CREATE TABLE scores_hard (
+        score INTEGER, 
+        name TEXT, 
+        date TEXT
+        )""")
+    conn.commit()
+    cursor.close()
+    conn.close()
+    return 0
+
+
+def write_leaderboard(score: int, write_name: str, difficulty_int: int) -> bool:
+    if difficulty_int == 0:
+        mode = "normal"
+    elif difficulty_int == 1:
+        mode = "easy"
+    elif difficulty_int == 2:
+        mode = "hard"
+    else:
+        raise ValueError
+    db_path = os.path.join(os.path.dirname(__file__), 'leaderboard.db')
+    if not os.path.isfile(db_path):  # If database is missing, create new
+        create_db(db_path)
+    today = date.today().strftime('%d %m %Y')
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM scores_{} ORDER BY score ASC".format(mode))
     tops = cursor.fetchall()
     empty_places = len(tops) < 10
     is_leader = False
@@ -141,8 +175,8 @@ def write_leaderboard(score: int, write_name: str):
     if is_leader:
         # Remove last and insert here
         if not empty_places:
-            cursor.execute("""DELETE FROM scores WHERE score = (SELECT MIN(score) FROM scores);""")
-        cursor.execute("INSERT INTO scores VALUES (?, ?, ?)", (score, write_name, today))
+            cursor.execute("DELETE FROM scores_{} WHERE score = (SELECT MIN(score) FROM scores);".format(mode))
+        cursor.execute("INSERT INTO scores_{} VALUES (?, ?, ?)".format(mode), (score, write_name, today))
         conn.commit()
     cursor.close()
     conn.close()
@@ -156,20 +190,13 @@ def clear_leaderboard():
         print("Initializing deletion...")
         db_path = os.path.join(os.path.dirname(__file__), 'leaderboard.db')
         if not os.path.isfile(db_path):  # If database is missing, create new
-            conn = sqlite3.connect(db_path)
-            cursor = conn.cursor()
-            cursor.execute("""CREATE TABLE scores (
-                score INTEGER, 
-                name TEXT, 
-                date TEXT
-                )""")
-            conn.commit()
-            cursor.close()
-            conn.close()
+            create_db(db_path)
 
         conn = sqlite3.connect(db_path)
         cursor = conn.cursor()
-        cursor.execute("DELETE FROM scores")
+        cursor.execute("DELETE FROM scores_easy")
+        cursor.execute("DELETE FROM scores_normal")
+        cursor.execute("DELETE FROM scores_hard")
         conn.commit()
         cursor.close()
         conn.close()
@@ -179,22 +206,21 @@ def clear_leaderboard():
         return 1
 
 
-def show_leaderboard():
+def show_leaderboard(difficulty_int: int):
+    if difficulty_int == 0:
+        mode = "normal"
+    elif difficulty_int == 1:
+        mode = "easy"
+    elif difficulty_int == 2:
+        mode = "hard"
+    else:
+        raise ValueError
     db_path = os.path.join(os.path.dirname(__file__), 'leaderboard.db')
     if not os.path.isfile(db_path):  # If database is missing, create new
-        conn = sqlite3.connect(db_path)
-        cursor = conn.cursor()
-        cursor.execute("""CREATE TABLE scores (
-            score INTEGER, 
-            name TEXT, 
-            date TEXT
-            )""")
-        conn.commit()
-        conn.close()
-
+        create_db(db_path)
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM scores ORDER BY score DESC")
+    cursor.execute("SELECT * FROM scores_{} ORDER BY score DESC".format(mode))
     tops = cursor.fetchall()
     conn.close()
     return tops

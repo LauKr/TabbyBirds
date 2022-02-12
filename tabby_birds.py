@@ -197,7 +197,7 @@ def main(interactive: bool = True) -> None:
             elif difficulty == "2":
                 PIPE_GAP = configParser.getint("difficulty", "PIPE_GAP_HARD")
         except FileNotFoundError:
-            pass
+            raise FileNotFoundError
     run = True
     score = 0
     while run:
