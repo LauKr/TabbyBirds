@@ -175,7 +175,7 @@ def write_leaderboard(score: int, write_name: str, difficulty_int: int) -> bool:
     if is_leader:
         # Remove last and insert here
         if not empty_places:
-            cursor.execute("DELETE FROM scores_{} WHERE score = (SELECT MIN(score) FROM scores);".format(mode))
+            cursor.execute("DELETE FROM scores_{} WHERE score = (SELECT MIN(score) FROM scores_{});".format(mode, mode))
         cursor.execute("INSERT INTO scores_{} VALUES (?, ?, ?)".format(mode), (score, write_name, today))
         conn.commit()
     cursor.close()
