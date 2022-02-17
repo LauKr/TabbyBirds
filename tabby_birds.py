@@ -178,7 +178,7 @@ def main(interactive: bool = True) -> None:
     global PIPE_GAP
     bird = Bird(230, 350)
     base = Base(730)
-    pipes = [Pipe(700, PIPE_GAP)]
+    pipes = []
     pygame.init()
     win = pygame.display.set_mode((WIN_WIDTH, WIN_HEIGHT))
     clock = pygame.time.Clock()
@@ -200,6 +200,7 @@ def main(interactive: bool = True) -> None:
             raise FileNotFoundError
     run = True
     score = 0
+    pipes.append(Pipe(700, PIPE_GAP))
     while run:
         clock.tick(30)
         for event in pygame.event.get():
