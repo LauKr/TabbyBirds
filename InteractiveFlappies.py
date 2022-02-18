@@ -165,7 +165,7 @@ def write_leaderboard(score: int, write_name: str, difficulty_int: int) -> bool:
     tops = cursor.fetchall()
     empty_places = len(tops) < 10
     is_leader = False
-    for i, leader in enumerate(tops):
+    for _, leader in enumerate(tops):
         if score > leader[0]:
             is_leader = True
         else:
