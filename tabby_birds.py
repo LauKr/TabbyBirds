@@ -42,6 +42,7 @@ class Bird:
     def __init__(self, x, y):
         """
         A bird with coordinates <x, y>.
+
         :param x:
         :param y:
         """
@@ -105,7 +106,8 @@ class Pipe:
 
     def __init__(self, x, gap):
         """
-        Pipe pair at position <x> with a y-gap of <gap>
+        Pipe pair at position <x> with a y-gap of <gap>.
+
         :param x:
         :param gap:
         """
@@ -156,7 +158,8 @@ class Base:
 
     def __init__(self, y):
         """
-        Ground at y level <y>
+        Ground at y level <y>.
+
         :param y:
         """
         self.y = y
