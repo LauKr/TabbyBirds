@@ -1,5 +1,3 @@
-import random
-
 import pygame
 import pygame_menu
 import os
@@ -163,7 +161,7 @@ def write_leaderboard(score: int, write_name: str, difficulty_int: int) -> bool:
     today = date.today().strftime('%d %m %Y')
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM scores_{} ORDER BY score ASC".format(mode))
+    cursor.execute("SELECT * FROM scores_{?} ORDER BY score ASC", mode)
     tops = cursor.fetchall()
     empty_places = len(tops) < 10
     is_leader = False
@@ -178,8 +176,8 @@ def write_leaderboard(score: int, write_name: str, difficulty_int: int) -> bool:
     if is_leader:
         # Remove last and insert here
         if not empty_places:
-            cursor.execute("DELETE FROM scores_{} WHERE score = (SELECT MIN(score) FROM scores_{});".format(mode, mode))
-        cursor.execute("INSERT INTO scores_{} VALUES (?, ?, ?)".format(mode), (score, write_name, today))
+            cursor.execute("DELETE FROM scores_{?} WHERE score = (SELECT MIN(score) FROM scores_{?});", (mode, mode))
+        cursor.execute("INSERT INTO scores_{?} VALUES (?, ?, ?)", (mode, score, write_name, today))
         conn.commit()
     cursor.close()
     conn.close()
@@ -223,7 +221,7 @@ def show_leaderboard(difficulty_int: int) -> list:
         create_db(db_path)
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM scores_{} ORDER BY score DESC".format(mode))
+    cursor.execute("SELECT * FROM scores_{?} ORDER BY score DESC", mode)
     tops = cursor.fetchall()
     conn.close()
     return tops
