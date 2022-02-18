@@ -15,18 +15,18 @@ For detailed requirements see [requirements.txt](requirements.txt).
 
 To run the script python 3.6 as well as the following modules are needed:
 
-  - pygame
-  - pygame_menu
-  - neat
+- pygame
+- pygame_menu
+- neat
 
 and the standard modules
 
-  - time
-  - os
-  - random
-  - configparser
-  - datetime
-  - sqlite3
+- time
+- os
+- random
+- configparser
+- datetime
+- sqlite3
 
 ## Running the game
 
