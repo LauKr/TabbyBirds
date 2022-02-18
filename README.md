@@ -4,6 +4,8 @@
 A small flappy bird game written in python.
 
 ## Requirements
+> The needed modules can be installed with `python -m pip install -r requirements.txt`.
+
 For detailed requirements see [requirements.txt](requirements.txt).
 
 To run the script python 3.6 as well as the following modules are needed:
