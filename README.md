@@ -1,3 +1,6 @@
+[![Vulnerabilities](https://img.shields.io/snyk/vulnerabilities/github/LauKr/TabbyBirds)](https://img.shields.io/snyk/vulnerabilities/github/LauKr/TabbyBirds)
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/2fb76f8daea246c9b03adc2e92284070)](https://www.codacy.com/gl/LauKr/TabbyBirds/dashboard?utm_source=gitlab.com&amp;utm_medium=referral&amp;utm_content=LauKr/TabbyBirds&amp;utm_campaign=Badge_Grade)
+
 # Tabby Birds
 
 ## Description
