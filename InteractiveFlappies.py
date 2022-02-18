@@ -44,10 +44,10 @@ def end_game(win, score: int, user_name: str):
 
     got_highscore = write_leaderboard(score=score, write_name=user_name, difficulty_int=difficulty)
     win.blit(BG_IMG, (0, 0))
+    text = "Game ended\nYou scored: {}\n".format(score)
     if got_highscore:
-        text = f"Game ended\nYou scored: {score}\nThat's good!\nPress Escape"
-    else:
-        text = f"Game ended\nYou scored: {score}\nPress Escape"
+        text += "That's good!\n"
+    text += "\nPress Escape\n      (end)\n   or return\n     (menu)"
     render_multi_line(text, 100, 200, 50)
     pygame.display.update()
     clock = pygame.time.Clock()
@@ -58,8 +58,11 @@ def end_game(win, score: int, user_name: str):
             if event.type == pygame.QUIT:
                 ending = False
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
+                if event.key == pygame.K_ESCAPE:  # End game
                     ending = False
+                if event.key == pygame.K_RETURN:  # return to menu
+                    begin_game(win)
+                    ending = False  # Needed to close menu if upper-right x is pressed. Without the menu freezes.
     pygame.quit()
     quit()
 
@@ -121,7 +124,7 @@ def begin_game(surface):
     menu.mainloop(surface, bgfun=draw_bg)
 
 
-def create_db(db_path):
+def create_db(db_path: str) -> int:
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
     cursor.execute("""CREATE TABLE scores_easy (
@@ -183,7 +186,7 @@ def write_leaderboard(score: int, write_name: str, difficulty_int: int) -> bool:
     return is_leader
 
 
-def clear_leaderboard():
+def clear_leaderboard() -> int:
     print("Be careful!\nThis will delete ALL entries in the leaderboard.")
     really = input("Are you really sure this is what you want? (yN) ")
     if really == ("y" or "Y"):
@@ -206,7 +209,7 @@ def clear_leaderboard():
         return 1
 
 
-def show_leaderboard(difficulty_int: int):
+def show_leaderboard(difficulty_int: int) -> list:
     if difficulty_int == 0:
         mode = "normal"
     elif difficulty_int == 1:

@@ -123,7 +123,7 @@ class Pipe:
         win.blit(self.PIPE_TOP, (self.x, self.top))
         win.blit(self.PIPE_BOTTOM, (self.x, self.bottom))
 
-    def collide(self, bird):
+    def collide(self, bird) -> bool:
         bird_mask = bird.get_mask()
         top_mask = pygame.mask.from_surface(self.PIPE_TOP)
         bottom_mask = pygame.mask.from_surface(self.PIPE_BOTTOM)
@@ -196,7 +196,8 @@ def main(interactive: bool = True) -> None:
                 PIPE_GAP = configParser.getint("difficulty", "PIPE_GAP_EASY")
             elif difficulty == "2":
                 PIPE_GAP = configParser.getint("difficulty", "PIPE_GAP_HARD")
-        except FileNotFoundError:
+        except FileNotFoundError as err:
+            print(err)
             raise FileNotFoundError
     run = True
     score = 0
@@ -233,7 +234,7 @@ def main(interactive: bool = True) -> None:
     if interactive:
         try:
             interact.end_game(win, score, name)
-        except Exception:
+        except Exception:  # If name could not be imported; Should raise FileNotFoundError anyway
             interact.end_game(win, score, "Error")
     else:
         pygame.quit()
