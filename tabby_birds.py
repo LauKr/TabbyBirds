@@ -40,6 +40,11 @@ class Bird:
     ANIMATION_TIME = 5
 
     def __init__(self, x, y):
+        """
+        A bird with coordinates <x, y>.
+        :param x:
+        :param y:
+        """
         self.x = x
         self.y = y
         self.tilt = 0
@@ -99,6 +104,11 @@ class Pipe:
     VEL = VELOCITY
 
     def __init__(self, x, gap):
+        """
+        Pipe pair at position <x> with a y-gap of <gap>
+        :param x:
+        :param gap:
+        """
         self.x = x
         self.height = 0
         self.gap = gap
@@ -145,6 +155,10 @@ class Base:
     IMG = BASE_IMG
 
     def __init__(self, y):
+        """
+        Ground at y level <y>
+        :param y:
+        """
         self.y = y
         self.x1 = 0
         self.x2 = self.WIDTH
