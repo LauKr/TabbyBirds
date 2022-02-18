@@ -47,7 +47,7 @@ def end_game(win, score: int, user_name: str):
     text = "Game ended\nYou scored: {}\n".format(score)
     if got_highscore:
         text += "That's good!\n"
-    text += "Press Escape (end)\nor return (menu)"
+    text += "\nPress Escape\n      (end)\n   or return\n     (menu)"
     render_multi_line(text, 100, 200, 50)
     pygame.display.update()
     clock = pygame.time.Clock()
