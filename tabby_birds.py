@@ -191,7 +191,7 @@ def draw_window(win, bird, pipes, base, score):
     pygame.display.update()
 
 
-def main(interactive: bool = True) -> None:
+def run_game(interactive: bool = True):
     global PIPE_GAP
     bird = Bird(230, 350)
     base = Base(730)
@@ -256,6 +256,11 @@ def main(interactive: bool = True) -> None:
     else:
         pygame.quit()
         quit()
+
+
+def main() -> int:
+    run_game(interactive=True)
+    return 0
 
 
 if __name__ == '__main__':

@@ -161,7 +161,12 @@ def write_leaderboard(score: int, write_name: str, difficulty_int: int) -> bool:
     today = date.today().strftime('%d %m %Y')
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM scores_{?} ORDER BY score ASC", mode)
+    if mode == "easy":
+        cursor.execute("SELECT * FROM scores_easy ORDER BY score ASC")
+    elif mode == "normal":
+        cursor.execute("SELECT * FROM scores_normal ORDER BY score ASC")
+    elif mode == "hard":
+        cursor.execute("SELECT * FROM scores_hard ORDER BY score ASC")
     tops = cursor.fetchall()
     empty_places = len(tops) < 10
     is_leader = False
@@ -175,8 +180,19 @@ def write_leaderboard(score: int, write_name: str, difficulty_int: int) -> bool:
     if is_leader:
         # Remove last and insert here
         if not empty_places:
-            cursor.execute("DELETE FROM scores_{?} WHERE score = (SELECT MIN(score) FROM scores_{?});", (mode, mode))
-        cursor.execute("INSERT INTO scores_{?} VALUES (?, ?, ?)", (mode, score, write_name, today))
+            if mode == "easy":
+                cursor.execute("DELETE FROM scores_easy WHERE score = (SELECT MIN(score) FROM scores_easy);")
+            elif mode == "normal":
+                cursor.execute("DELETE FROM scores_normal WHERE score = (SELECT MIN(score) FROM scores_normal);")
+            elif mode == "hard":
+                cursor.execute("DELETE FROM scores_hard WHERE score = (SELECT MIN(score) FROM scores_hard});")
+        if mode == "easy":
+            cursor.execute("INSERT INTO scores_easy VALUES (?, ?, ?)", (score, write_name, today))
+        elif mode == "normal":
+            cursor.execute("INSERT INTO scores_normal VALUES (?, ?, ?)", (score, write_name, today))
+        elif mode == "hard":
+            cursor.execute("INSERT INTO scores_hard VALUES (?, ?, ?)", (score, write_name, today))
+
         conn.commit()
     cursor.close()
     conn.close()
@@ -220,7 +236,12 @@ def show_leaderboard(difficulty_int: int) -> list:
         create_db(db_path)
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM scores_{?} ORDER BY score DESC", mode)
+    if mode == "easy":
+        cursor.execute("SELECT * FROM scores_easy ORDER BY score DESC")
+    elif mode == "easy":
+        cursor.execute("SELECT * FROM scores_normal ORDER BY score DESC")
+    elif mode == "easy":
+        cursor.execute("SELECT * FROM scores_hard ORDER BY score DESC")
     tops = cursor.fetchall()
     conn.close()
     return tops
